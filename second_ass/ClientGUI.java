@@ -1,11 +1,10 @@
-// GUI Chat Client
 import java.net.*;
 import java.io.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
-class ClientGUI extends JFrame implements ActionListener {
+public class ClientGUI extends JFrame implements ActionListener {
 
     JTextArea chatArea;
     JTextField inputField;
@@ -15,38 +14,36 @@ class ClientGUI extends JFrame implements ActionListener {
     PrintStream out;
     BufferedReader in;
 
-    ClientGUI() throws IOException {
+    public ClientGUI() throws IOException {
+
         // GUI setup
-        setTitle("Chat Client");
-        setSize(400, 500);
-        setLayout(new BorderLayout());
+        setTitle("Client");
+        setSize(400, 400);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         chatArea = new JTextArea();
         chatArea.setEditable(false);
-        JScrollPane sp = new JScrollPane(chatArea);
+        add(new JScrollPane(chatArea), BorderLayout.CENTER);
 
         inputField = new JTextField();
         sendButton = new JButton("Send");
-
-        JPanel bottomPanel = new JPanel(new BorderLayout());
-        bottomPanel.add(inputField, BorderLayout.CENTER);
-        bottomPanel.add(sendButton, BorderLayout.EAST);
-
-        add(sp, BorderLayout.CENTER);
-        add(bottomPanel, BorderLayout.SOUTH);
-
         sendButton.addActionListener(this);
-        inputField.addActionListener(this);
 
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.add(inputField, BorderLayout.CENTER);
+        panel.add(sendButton, BorderLayout.EAST);
+        add(panel, BorderLayout.SOUTH);
+
         setVisible(true);
 
-        // Socket connection
-        socket = new Socket("localhost", 9000);
-        out = new PrintStream(socket.getOutputStream());
+        // CONNECT TO SERVER
+        socket = new Socket("localhost", 5000);
+
+        // IMPORTANT PART (FIX)
+        out = new PrintStream(socket.getOutputStream(), true);
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-        // Receive messages thread
+        // READ SERVER MESSAGES
         new Thread(() -> {
             try {
                 String msg;
@@ -54,11 +51,12 @@ class ClientGUI extends JFrame implements ActionListener {
                     chatArea.append("Server: " + msg + "\n");
                 }
             } catch (IOException e) {
-                chatArea.append("Connection closed.\n");
+                e.printStackTrace();
             }
         }).start();
     }
 
+    // SEND MESSAGE TO SERVER
     public void actionPerformed(ActionEvent e) {
         String msg = inputField.getText();
         if (!msg.isEmpty()) {
@@ -72,4 +70,5 @@ class ClientGUI extends JFrame implements ActionListener {
         new ClientGUI();
     }
 }
+
 
